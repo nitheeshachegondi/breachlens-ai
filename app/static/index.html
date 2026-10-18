@@ -28,6 +28,8 @@ button.rec{border-color:var(--cy);background:#ecfeff;color:#0e7490;box-shadow:0 
 .big{font-size:30px;font-weight:800;color:var(--gr)}.ok{color:var(--gr)}.wn{color:var(--or)}
 .term{background:#0b1226;border-radius:12px;padding:10px 14px;max-height:230px;overflow:auto}.term code{font:12px/1.5 ui-monospace,Menlo,monospace;color:#7ee7f7;display:block;margin:5px 0;white-space:pre-wrap}.term:before{content:"● ● ●  FalkorDB Cypher";display:block;color:#64748b;font-size:11px;letter-spacing:.1em}
 input.q{width:100%;margin-bottom:10px;padding:10px 13px;border-radius:11px;border:1px solid #cfd7ea;background:#fff;color:var(--tx);font:inherit}input.q:focus{outline:2px solid #c7d2fe}.tc{display:inline-block;border:1px solid #a5f3fc;background:#ecfeff;color:#0e7490;border-radius:99px;padding:0 10px;font-size:12px;font-weight:600;margin:4px 4px 0 0}
+.c{max-width:1000px;margin:0 auto}.card h2{text-align:center}#paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}#paths .p{margin:0}#acts,#sim{text-align:center}#acts button{text-align:left}#ai{text-align:left}
+summary{cursor:pointer;font-weight:600;color:var(--mu);text-align:center}details[open] summary{margin-bottom:6px}
 a{color:var(--vi)}footer{margin-top:30px;border-top:1px solid var(--ln);background:#fff;padding:22px 0;color:var(--mu);font-size:13px}
 </style>
 <nav><div class="w"><div class="logo"><i>◎</i>BreachLens AI</div><a href="#how">How it works</a><a href="#demo">Live demo</a><span class="sp"></span><span class="live">FalkorDB connected</span></div></nav>
@@ -37,13 +39,14 @@ a{color:var(--vi)}footer{margin-top:30px;border-top:1px solid var(--ln);backgrou
 <a class="cta p1" href="#demo">Explore the live demo</a><a class="cta p2" href="#how">How it works</a></div></header>
 <div class="w"><div class="stats" id="stats"></div>
 <section class="s" id="how"><div class="card" id="co">Loading…</div></section>
-<section class="s" id="demo"><div class="grid"><div><div class="card"><h2>Attack path explorer</h2><svg id="g" viewBox="0 0 900 440" role="img" aria-label="Attack graph"></svg>
-<small>Left to right: Internet, services, sensitive data. Pulsing dots are known weaknesses. Orange dots show an attacker moving along the selected path. Green dashed lines are routes closed by a simulated fix.</small><div id="info" class="mu"></div></div>
-<div class="card"><h2>What-if remediation</h2><div id="acts">Ranking fixes…</div><div id="sim" class="mu">Pick a fix to simulate it on a copy of the graph. The real graph is never changed.</div></div></div>
-<div><div class="card"><h2>Discovered attack paths</h2><div id="paths">Loading…</div></div>
-<div class="card"><h2>Evidence</h2><div id="ev" class="mu">Select a path to watch the attack.</div></div>
-<div class="card"><h2>AI analyst agent</h2><input class="q" id="qq" placeholder="Ask: what should I fix first?"><button onclick="ask()">Run agent</button><div id="ai" class="mu"></div><div id="tl"></div></div>
-<div class="card"><h2>Cypher that ran</h2><div id="cy" class="term"></div></div></div></div></section></div>
+<section class="s" id="demo"><div class="c">
+<div class="card"><h2>Attack path explorer</h2><svg id="g" viewBox="0 0 900 440" role="img" aria-label="Attack graph"></svg>
+<small>Left to right: Internet, services, sensitive data. Pulsing dots are known weaknesses. Orange dots show an attacker moving along the selected path. Green dashed lines are routes closed by a fix.</small><div id="info" class="mu"></div></div>
+<div class="card"><h2>Attack paths found · tap one to watch the attack</h2><div id="paths">Loading…</div><div id="ev" class="mu" style="margin-top:12px"></div></div>
+<div class="card"><h2>Fix it · what-if simulation</h2><div id="acts">Ranking fixes…</div><div id="sim" class="mu">Pick a fix to simulate it on a copy of the graph. The real graph is never changed.</div></div>
+<div class="card"><h2>Ask the AI analyst</h2><input class="q" id="qq" placeholder="Ask: what should I fix first?"><button onclick="ask()">Run agent</button><div id="ai" class="mu"></div><div id="tl"></div></div>
+<details class="card"><summary>Under the hood: Cypher queries and use your own data</summary><div id="cy" class="term" style="margin-top:12px"></div><div id="imp" style="margin-top:14px"></div></details>
+</div></section></div>
 <footer><div class="w">BreachLens AI · Built for FalkorDB Graph Hacks (WeMakeDevs) · LedgerLoop is a fictional company and all data is synthetic · Built with AI assistance, see the README disclosure.</div></footer>
 <script>
 const $=s=>document.querySelector(s),J=(u,o)=>fetch(u,o).then(async r=>{const d=await r.json().catch(()=>({}));return r.ok?d:Promise.reject(d.detail?(typeof d.detail=='string'?d.detail:'Invalid input')+(d.host?' (host '+d.host+':'+d.port+')':''):r.statusText)});
@@ -88,7 +91,8 @@ if(r.queries.length)$('#cy').innerHTML=r.queries.map(x=>`<code>${x}</code>`).joi
 async function imp(f){try{await J('/api/import',{method:'POST',headers:{'content-type':'application/json'},body:await f.text()});location.reload()}catch(e){alert('Import failed: '+e)}}
 async function reset(){await J('/api/seed',{method:'POST'});location.reload()}
 (async()=>{try{G=await J('/api/graph');const d=await J('/api/paths');P=d.paths;draw();
-$('#co').innerHTML=`<h2>Case study</h2><div style="font-size:20px;font-weight:700">${G.company.name}</div><div class="mu">${G.company.desc}</div><div class="steps"><div><b>1. Discover</b><br>BreachLens joins scanner, dependency and asset data into one graph.</div><div><b>2. Simulate</b><br>Try a fix on a copy of the graph and see which paths close.</div><div><b>3. Ask</b><br>The agent answers with graph queries, not guesses.</div><div><b>4. Use yours</b><br><a href="/api/sample">Download sample</a>, edit it, <label class="btn" style="padding:2px 10px;margin:0">Import JSON<input type="file" accept=".json" hidden onchange="imp(this.files[0])"></label> <button style="padding:2px 10px;margin:0" onclick="reset()">Reset</button></div></div>`;
+$('#co').innerHTML=`<h2>Case study</h2><div style="text-align:center"><div style="font-size:22px;font-weight:800">${G.company.name}</div><div class="mu" style="max-width:720px;margin:4px auto 0">${G.company.desc}</div></div><div class="steps"><div><b>1. Discover</b><br>Scanner, dependency and asset data become one graph.</div><div><b>2. Simulate</b><br>Try a fix on a graph copy and see which paths close.</div><div><b>3. Ask</b><br>The agent answers using graph queries, not guesses.</div></div>`;
+$('#imp').innerHTML=`<a href="/api/sample">Download sample inventory</a> · <label class="btn" style="padding:4px 12px;margin:0 8px 0 0">Import JSON<input type="file" accept=".json" hidden onchange="imp(this.files[0])"></label><button style="padding:4px 12px;margin:0" onclick="reset()">Reset demo</button>`;
 $('#paths').innerHTML=P.map((p,i)=>`<div class="p" tabindex="0" onclick="pick(${i})"><div class="sc ${p.severity}">${p.score}<small>${p.severity}</small></div><div>${p.nodes.map(x=>`<span class="chip">${nm(x)}</span>`).join(' <span class="ar">▸</span> ')}<br><small>${p.length} hops</small></div></div>`).join('')||'<span class="ok">No candidate attack paths.</span>';
 $('#cy').innerHTML=d.queries.map(x=>`<code>${x}</code>`).join('');
 const rec=(await J('/api/recommend')).ranking,b=rec[0];TOT=P.reduce((a,p)=>a+p.score,0);
