@@ -1,0 +1,146 @@
+{
+ "company": {
+  "name": "LedgerLoop",
+  "desc": "Fictional 40-person B2B invoicing and payouts SaaS. Its scanner, dependency checker and cloud inventory produce three separate reports; BreachLens joins them into one graph."
+ },
+ "services": [
+  [
+   "web-gateway",
+   "Web App"
+  ],
+  [
+   "admin-portal",
+   "Staff Admin"
+  ],
+  [
+   "api-service",
+   "Invoice API"
+  ],
+  [
+   "auth-service",
+   "Staff SSO"
+  ],
+  [
+   "billing-worker",
+   "Payout Worker"
+  ]
+ ],
+ "components": [
+  [
+   "log4j-core",
+   "log4j-core 2.14.1"
+  ],
+  [
+   "spring-framework",
+   "Spring 5.3.17"
+  ],
+  [
+   "legacy-auth-lib",
+   "legacy-auth-lib 0.9"
+  ]
+ ],
+ "vulnerabilities": [
+  [
+   "CVE-2021-44228",
+   "Log4Shell",
+   10.0,
+   "NVD (public record)"
+  ],
+  [
+   "CVE-2022-22965",
+   "Spring4Shell",
+   9.8,
+   "NVD (public record)"
+  ],
+  [
+   "SYN-2026-001",
+   "Hard-coded service token (synthetic)",
+   7.5,
+   "synthetic"
+  ]
+ ],
+ "sensitive": [
+  [
+   "customer-db",
+   "Customer DB",
+   9
+  ],
+  [
+   "payment-secrets",
+   "Payout Keys",
+   10
+  ]
+ ],
+ "edges": [
+  [
+   "EXPOSES",
+   "internet",
+   "web-gateway"
+  ],
+  [
+   "EXPOSES",
+   "internet",
+   "admin-portal"
+  ],
+  [
+   "CONNECTS_TO",
+   "web-gateway",
+   "api-service"
+  ],
+  [
+   "CONNECTS_TO",
+   "api-service",
+   "billing-worker"
+  ],
+  [
+   "CONNECTS_TO",
+   "admin-portal",
+   "auth-service"
+  ],
+  [
+   "CAN_ACCESS",
+   "api-service",
+   "customer-db"
+  ],
+  [
+   "CAN_ACCESS",
+   "billing-worker",
+   "payment-secrets"
+  ],
+  [
+   "CAN_ACCESS",
+   "auth-service",
+   "payment-secrets"
+  ],
+  [
+   "DEPENDS_ON",
+   "api-service",
+   "log4j-core"
+  ],
+  [
+   "DEPENDS_ON",
+   "admin-portal",
+   "spring-framework"
+  ],
+  [
+   "DEPENDS_ON",
+   "auth-service",
+   "legacy-auth-lib"
+  ],
+  [
+   "HAS_VULNERABILITY",
+   "log4j-core",
+   "CVE-2021-44228"
+  ],
+  [
+   "HAS_VULNERABILITY",
+   "spring-framework",
+   "CVE-2022-22965"
+  ],
+  [
+   "HAS_VULNERABILITY",
+   "legacy-auth-lib",
+   "SYN-2026-001"
+  ]
+ ]
+}

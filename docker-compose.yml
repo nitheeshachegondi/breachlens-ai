@@ -1,0 +1,16 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports: ["6379:6379", "3000:3000"]
+  app:
+    build: .
+    env_file: [.env]
+    # These override .env so the local run never uses Cloud credentials.
+    environment:
+      FALKORDB_HOST: falkordb
+      FALKORDB_PORT: "6379"
+      FALKORDB_USERNAME: ""
+      FALKORDB_PASSWORD: ""
+      FALKORDB_SSL: "0"
+    ports: ["8000:8000"]
+    depends_on: [falkordb]
