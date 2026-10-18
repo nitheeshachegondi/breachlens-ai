@@ -19,8 +19,17 @@ LOG: list = []
 def db():
     global _db
     if _db is None:
-        _db = FalkorDB(host=os.getenv("FALKORDB_HOST", "localhost"), port=int(os.getenv("FALKORDB_PORT", 6379)),
-                       username=os.getenv("FALKORDB_USERNAME") or None, password=os.getenv("FALKORDB_PASSWORD") or None, ssl=os.getenv("FALKORDB_SSL") == "1")
+        host = os.getenv("FALKORDB_HOST", "localhost")
+        if os.getenv("VERCEL") and host in ("localhost", "falkordb", "127.0.0.1"):
+            raise RuntimeError("FALKORDB_HOST is still the local value. In Vercel set FALKORDB_HOST/PORT/USERNAME/PASSWORD to your FalkorDB Cloud values (Production scope), then redeploy.")
+        pref, last = os.getenv("FALKORDB_SSL") == "1", None
+        for ssl in (pref, not pref):  # try the configured TLS mode first, then the other one
+            try:
+                c = FalkorDB(host=host, port=int(os.getenv("FALKORDB_PORT", 6379)), username=os.getenv("FALKORDB_USERNAME") or None,
+                             password=os.getenv("FALKORDB_PASSWORD") or None, ssl=ssl, socket_connect_timeout=6, socket_timeout=40)
+                c.connection.ping(); _db = c; break
+            except Exception as e: last = e
+        if _db is None: raise last
     return _db
 def q(g, cypher, **p):
     LOG.append(" ".join(cypher.split())); return g.query(cypher, p).result_set
