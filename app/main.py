@@ -4,7 +4,10 @@ from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from falkordb import FalkorDB
-from .agent import run_agent
+try:
+    from .agent import run_agent
+except ImportError:  # loaded as a top-level module (e.g. by a serverless host)
+    from agent import run_agent
 
 BASE = "breachlens"
 app = FastAPI(title="BreachLens AI")
